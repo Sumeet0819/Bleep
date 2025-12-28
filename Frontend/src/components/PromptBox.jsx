@@ -11,11 +11,14 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { addReminder } from "../store/actions/reminderActions";
 import { buildDateFromDayTime } from "../utils/date";
+import CustomDialog from "./CustomDialog";
 
 export default function PromptBox() {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.user);
   const [text, setText] = useState("");
+  const [dialogVisible, setDialogVisible] = useState(false);
+  const [dialogMessage, setDialogMessage] = useState("");
 
   ////////////////////////////////////////////////////////////////////////////
   // DAY SELECTOR
@@ -110,6 +113,48 @@ export default function PromptBox() {
     else if (h > 12) h -= 12;
 
     const formattedHour = h.toString().padStart(2, "0");
+
+    // ✅ VALIDATE TIME BEFORE BUILDING DATE
+    // Create a temporary date to check if it's in the past/current
+    const now = new Date();
+    const tempDate = new Date();
+    
+    // Calculate the day difference
+    const dayMap = {
+      Sunday: 0,
+      Monday: 1,
+      Tuesday: 2,
+      Wednesday: 3,
+      Thursday: 4,
+      Friday: 5,
+      Saturday: 6,
+    };
+    
+    const targetDay = dayMap[fullDays[day]];
+    const currentDay = now.getDay();
+    const dayDiff = (targetDay - currentDay + 7) % 7;
+    
+    tempDate.setDate(tempDate.getDate() + dayDiff);
+    
+    // Set the hours and minutes
+    let validationHours = parseInt(hour, 10);
+    const validationMinutes = parseInt(minute, 10);
+    
+    tempDate.setHours(validationHours, validationMinutes, 0, 0);
+    
+    // Check if this time is in the past or too close to now
+    const timeDiff = tempDate.getTime() - now.getTime();
+    
+    // If the time difference is less than 1 minute (60000 ms), show error
+    if (timeDiff < 60000) {
+      setDialogMessage(
+        timeDiff < 0 
+          ? "You cannot create a reminder for a past time. Please select a future time."
+          : "You cannot create a reminder for the current time. Please select a time at least 1 minute in the future."
+      );
+      setDialogVisible(true);
+      return;
+    }
 
     // ✅ BUILD DATE OBJECT (NOT STRING)
     const date = buildDateFromDayTime({
@@ -250,6 +295,16 @@ export default function PromptBox() {
         multiline={true}
         style={styles.promptInput}
       />
+
+      <CustomDialog
+        visible={dialogVisible}
+        title="Invalid Time"
+        message={dialogMessage}
+        onConfirm={() => setDialogVisible(false)}
+        onCancel={() => setDialogVisible(false)}
+        confirmText="Got it"
+        showCancel={false}
+      />
     </View>
   );
 }
@@ -260,7 +315,6 @@ export default function PromptBox() {
 
 const styles = StyleSheet.create({
   promptBoxContainer: {
-    // height: 150, <--- Removed to allow dynamic growth
     paddingVertical: 30,
     backgroundColor: "#111",
     borderTopLeftRadius: 25,
@@ -289,7 +343,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     alignSelf: "flex-end",
     gap: 10,
-    marginTop: 10,
+    // marginTop: 10,
   },
 
   pillPicker: {

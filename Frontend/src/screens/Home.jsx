@@ -5,6 +5,7 @@ import {
   Platform,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from "react-native";
 
@@ -12,38 +13,53 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
 import PromptBox from "../components/PromptBox";
 import Reminders from "../components/Reminders";
+import { asyncLogoutUser } from "../store/actions/userActions";
+import { useDispatch } from "react-redux";
 
 export default function Home() {
   const bottomOffset = useRef(new Animated.Value(0)).current;
+  const dispatch = useDispatch();
 
   useEffect(() => {
-    const showSub = Keyboard.addListener(
-      Platform.OS === "android" ? "keyboardDidShow" : "keyboardWillShow",
-      (e) => {
-        Animated.timing(bottomOffset, {
-          toValue: e.endCoordinates.height,
-          duration: 180,
-          useNativeDriver: false,
-        }).start();
-      }
-    );
+    // Listen to multiple keyboard events for better cross-device compatibility
+    const listeners = [];
 
-    const hideSub = Keyboard.addListener(
-      Platform.OS === "android" ? "keyboardDidHide" : "keyboardWillHide",
-      () => {
+    // iOS uses 'Will' events, Android uses 'Did' events
+    // Some devices may fire both, so we listen to all
+    const showEvents = ['keyboardWillShow', 'keyboardDidShow'];
+    const hideEvents = ['keyboardWillHide', 'keyboardDidHide'];
+
+    showEvents.forEach(event => {
+      const listener = Keyboard.addListener(event, (e) => {
+        // Only animate if we have valid keyboard height
+        if (e.endCoordinates && e.endCoordinates.height > 0) {
+          Animated.timing(bottomOffset, {
+            toValue: e.endCoordinates.height,
+            duration: Platform.OS === 'ios' ? 250 : 100,
+            useNativeDriver: false,
+          }).start();
+        }
+      });
+      listeners.push(listener);
+    });
+
+    hideEvents.forEach(event => {
+      const listener = Keyboard.addListener(event, () => {
         Animated.timing(bottomOffset, {
-          toValue: -1,
-          duration: 180,
+          toValue: 0,
+          duration: Platform.OS === 'ios' ? 250 : 100,
           useNativeDriver: false,
         }).start();
-      }
-    );
+      });
+      listeners.push(listener);
+    });
+
     return () => {
-      showSub.remove();
-      hideSub.remove();
+      listeners.forEach(listener => listener.remove());
     };
-  }, []);
+  }, [bottomOffset]);
   const { user } = useSelector((state) => state.user);
+  if(!user) return null;
   const today = new Date();
 
   const week = Array.from({ length: 7 }).map((_, i) => {
@@ -72,9 +88,19 @@ export default function Home() {
               }}
             >
               <View style={{ flexDirection: "column", gap: 8 }}>
-                <Text style={styles.title}>
+              <View style={{ flexDirection: "row",gap: 8,alignItems: "center"}}>
+  <Text style={styles.title}>
                   Welcome ,{user.email.charAt(0).toUpperCase() + user.email.slice(1).split("@")[0]}
                 </Text>
+                <TouchableOpacity
+                  onPress={()=>{
+                    dispatch(asyncLogoutUser())
+                  }}
+                style={{borderWidth: 1,borderColor: "#fff4",backgroundColor:"#0A8C6D",padding: 8,borderRadius: 12}}>
+                  <Text style={{color: "#fff",fontSize: 16,fontWeight: "600"}}>Logout</Text>
+                </TouchableOpacity>
+              </View>
+                
                 <Text style={styles.subtitle}>{user.email}</Text>
               </View>
               <View style={styles.profile}>
@@ -205,6 +231,6 @@ const styles = StyleSheet.create({
     position: "absolute",
     left: 0,
     right: 0,
-    bottom: -1,
+    bottom: 0,
   },
 });

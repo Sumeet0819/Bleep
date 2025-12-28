@@ -8,12 +8,13 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { asyncLoginUser } from "../store/actions/userActions";
 import { loaduser } from "../store/reducers/userSlice";
 
 export default function LoginScreen() {
   const dispatch = useDispatch();
+  const { error } = useSelector((state) => state.user);
 
   const {
     control,
@@ -37,6 +38,7 @@ export default function LoginScreen() {
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <Text style={styles.title}>Welcome Back</Text>
+        {error && <Text style={{ color: "red", marginBottom: 10 }}>{error+" try again!"}</Text>}
 
         {/* EMAIL */}
         <View style={styles.inputWrapper}>

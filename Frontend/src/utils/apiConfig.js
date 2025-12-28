@@ -2,7 +2,7 @@ import axios from "axios";
 
 
 export const instance = axios.create({
-  baseURL: "https://bleep-5hlw.onrender.com/api",
+  baseURL: "http://192.168.1.9:3000/api",
   headers: { "Content-Type": "application/json" },
     withCredentials: true 
 });
