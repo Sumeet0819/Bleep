@@ -177,7 +177,14 @@ const ReminderCard = ({ item, onDelete }) => {
           ]}
         >
           <View style={styles.leftSection}>
-            <Text style={styles.reminderTitle}>{item.reminder}</Text>
+            <View style={styles.titleRow}>
+              <Text style={styles.reminderTitle}>{item.reminder}</Text>
+              {item.tag && (
+                <View style={styles.tagBadge}>
+                  <Text style={styles.tagBadgeText}>{item.tag}</Text>
+                </View>
+              )}
+            </View>
             <Text style={styles.timerValue}>{formatTime(timeLeft)}</Text>
           </View>
         </Animated.View>
@@ -235,9 +242,9 @@ export default function Reminders() {
         )}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
-          paddingTop: 210,
+          paddingTop: 0,
           paddingBottom: 200,
-          gap: 12,
+          gap: 0,
         }}
       />
     </View>
@@ -257,6 +264,7 @@ const styles = StyleSheet.create({
   swipeWrapper: {
     width: "100%",
     overflow: "hidden",
+    marginBottom: 12,
   },
 
   deleteBehind: {
@@ -265,35 +273,77 @@ const styles = StyleSheet.create({
     width: 80,
     height: "95%",
     backgroundColor: "#0A8C6D",
-    borderRadius: 35,
+    borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",
+    shadowColor: "#0A8C6D",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    elevation: 4,
   },
 
   cardContainer: {
     width: "100%",
-    backgroundColor: "#121d12",
-    borderRadius: 25,
+    backgroundColor: "#E8F5E9",
+    borderRadius: 20,
     minHeight: 100,
     maxHeight: 180,
     flexDirection: "row",
     alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#3a3a3a",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
 
   leftSection: {
-    paddingHorizontal: 15,
+    paddingHorizontal: 20,
     paddingVertical: 20,
+    flex: 1,
+  },
+
+  titleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 8,
+    flexWrap: "wrap",
   },
 
   reminderTitle: {
-    color: "#f2f2f2",
-    fontSize: 14,
-    lineHeight: 18,
-    marginBottom: 6,
+    color: "#0A8C6D",
+    fontSize: 15,
+    lineHeight: 20,
+    fontWeight: "500",
+    flex: 1,
+  },
+
+  tagBadge: {
+    backgroundColor: "#0A8C6D",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+
+  tagBadgeText: {
+    color: "#ffffff",
+    fontSize: 11,
+    fontWeight: "600",
   },
 
   timerValue: {
-    color: "#DDDDDD",
-    fontSize: 12,
+    color: "#0A8C6D",
+    fontSize: 13,
+    fontWeight: "600",
   },
 });

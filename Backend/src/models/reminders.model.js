@@ -14,6 +14,11 @@ const reminderSchema = new mongoose.Schema({
     date:{
         type: Date,
         required: true
+    },
+    tag:{
+        type: String,
+        default: 'General',
+        enum: ['Work', 'Personal', 'Health', 'Shopping', 'Study', 'General']
     }
 })
 
