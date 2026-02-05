@@ -1,9 +1,9 @@
 const reminderSchema = require('../models/reminders.model');
 
 async function createReminder(req, res) { 
-    const { userId, reminder, date } = req.body;
+    const { userId, reminder, date, tag } = req.body;
 
-    const newReminder = new reminderSchema({ userId, reminder, date });
+    const newReminder = new reminderSchema({ userId, reminder, date, tag });
     await newReminder.save();
 
     res.status(201).json({ message: 'Reminder created successfully', reminder: newReminder });

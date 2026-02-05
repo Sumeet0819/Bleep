@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   View,
   ScrollView,
+  useColorScheme,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useDispatch, useSelector } from "react-redux";
@@ -17,6 +18,23 @@ export default function AddReminder({ navigation }) {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.user);
   
+  const systemColorScheme = useColorScheme();
+  const isDark = systemColorScheme === 'dark';
+
+  const theme = {
+    background: isDark ? "#121212" : "#F2F4F8",
+    headerBg: isDark ? "#1F1F1F" : "#FFFFFF",
+    text: isDark ? "#F5F5F5" : "#1a1a1a",
+    subText: isDark ? "#CCCCCC" : "#666666",
+    inputBg: isDark ? "#1F1F1F" : "#FFFFFF",
+    inputBorder: "transparent", // Flat for both
+    buttonBg: isDark ? "#1F1F1F" : "#FFFFFF",
+    placeholder: isDark ? "#888888" : "#A0A0A0",
+    closeIcon: isDark ? "#F5F5F5" : "#1a1a1a",
+    chipBg: isDark ? "#1F1F1F" : "#FFFFFF",
+    chipBorder: "transparent", // Flat for both
+  };
+
   const [reminderText, setReminderText] = useState("");
   const [day, setDay] = useState(0);
   const [hour, setHour] = useState("09");
@@ -69,11 +87,11 @@ export default function AddReminder({ navigation }) {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>New reminder</Text>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.closeButtonContainer}>
-          <Ionicons name="close" size={24} color="#ffffff" />
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+      <View style={[styles.header, { backgroundColor: theme.background }]}>
+        <Text style={[styles.title, { color: theme.text }]}>New reminder</Text>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={[styles.closeButtonContainer, { backgroundColor: theme.buttonBg }]}>
+          <Ionicons name="close" size={24} color={theme.closeIcon} />
         </TouchableOpacity>
       </View>
 
@@ -85,11 +103,11 @@ export default function AddReminder({ navigation }) {
 
         {/* Reminder Input */}
         <View style={styles.section}>
-          <Text style={styles.label}>What do you want to be reminded about?</Text>
+          <Text style={[styles.label, { color: theme.text }]}>What do you want to be reminded about?</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.inputBorder, color: theme.text }]}
             placeholder="Team meeting, Take medicine, etc."
-            placeholderTextColor="#666"
+            placeholderTextColor={theme.placeholder}
             value={reminderText}
             onChangeText={setReminderText}
             multiline
@@ -98,7 +116,7 @@ export default function AddReminder({ navigation }) {
 
         {/* Tag Selection */}
         <View style={styles.section}>
-          <Text style={styles.label}>Category</Text>
+          <Text style={[styles.label, { color: theme.text }]}>Category</Text>
           <ScrollView 
             horizontal 
             showsHorizontalScrollIndicator={false}
@@ -109,6 +127,7 @@ export default function AddReminder({ navigation }) {
                 key={tag}
                 style={[
                   styles.tagChip,
+                  { backgroundColor: theme.chipBg, borderColor: theme.chipBorder },
                   selectedTag === tag && styles.tagChipActive
                 ]}
                 onPress={() => setSelectedTag(tag)}
@@ -126,11 +145,11 @@ export default function AddReminder({ navigation }) {
 
         {/* Day and Time Pickers */}
         <View style={styles.section}>
-          <Text style={styles.label}>When?</Text>
+          <Text style={[styles.label, { color: theme.text }]}>When?</Text>
           
           <View style={styles.pickersRow}>
             {/* Day Picker */}
-            <View style={styles.pillPickerday}>
+            <View style={[styles.pillPickerday, { backgroundColor: theme.inputBg, borderColor: theme.inputBorder }]}>
               <View style={styles.wheelContainerDay}>
                 <ScrollView
                   ref={dayRef}
@@ -154,6 +173,7 @@ export default function AddReminder({ navigation }) {
                       <Text
                         style={[
                           styles.timeText,
+                          { color: theme.subText },
                           day === index && styles.activeTimeText,
                         ]}
                       >
@@ -166,7 +186,7 @@ export default function AddReminder({ navigation }) {
             </View>
 
             {/* Time Picker */}
-            <View style={styles.pillPicker}>
+            <View style={[styles.pillPicker, { backgroundColor: theme.inputBg, borderColor: theme.inputBorder }]}>
               <View style={styles.wheelContainer}>
                 <ScrollView
                   ref={hourRef}
@@ -187,6 +207,7 @@ export default function AddReminder({ navigation }) {
                       <Text
                         style={[
                           styles.timeText,
+                          { color: theme.subText },
                           hour === h && styles.activeTimeText,
                         ]}
                       >
@@ -222,6 +243,7 @@ export default function AddReminder({ navigation }) {
                       <Text
                         style={[
                           styles.timeText,
+                          { color: theme.subText },
                           minute === m && styles.activeTimeText,
                         ]}
                       >
@@ -251,7 +273,6 @@ export default function AddReminder({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#1a1a1a",
   },
   header: {
     flexDirection: "row",
@@ -259,18 +280,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 20,
     paddingVertical: 16,
-    backgroundColor: "#1a1a1a",
   },
   title: {
     fontSize: 24,
     fontWeight: "bold",
-    color: "#ffffff",
   },
   closeButtonContainer: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "#2a2a2a",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -287,17 +305,13 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 16,
-    color: "#ffffff",
     marginBottom: 12,
     fontWeight: "500",
   },
   input: {
-    color: "#fff",
     paddingHorizontal: 14,
     paddingVertical: 12,
     borderWidth: 1,
-    borderColor: "#333",
-    backgroundColor: "#1A1A1A",
     borderRadius: 30,
     width: "100%",
     minHeight: 80,
@@ -312,9 +326,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 20,
-    backgroundColor: "#1A1A1A",
     borderWidth: 1,
-    borderColor: "#333",
   },
   tagChipActive: {
     backgroundColor: "#0A8C6D",
@@ -337,26 +349,22 @@ const styles = StyleSheet.create({
   pillPickerday: {
     width: 120,
     height: 50,
-    backgroundColor: "#1A1A1A",
     borderRadius: 30,
     overflow: "hidden",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
-    borderColor: "#333",
   },
   pillPicker: {
     width: 110,
     height: 50,
-    backgroundColor: "#1A1A1A",
     borderRadius: 30,
     overflow: "hidden",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
-    borderColor: "#333",
   },
   wheelContainerDay: {
     height: 40,
@@ -378,7 +386,6 @@ const styles = StyleSheet.create({
   },
   timeText: {
     fontSize: 16,
-    color: "#666",
   },
   activeTimeText: {
     color: "#0A8C6D",

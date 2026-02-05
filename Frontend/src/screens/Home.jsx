@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import {
   Animated,
   Keyboard,
@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   View,
   ScrollView,
+  useColorScheme,
 } from "react-native";
 
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -20,6 +21,30 @@ import { Ionicons } from "@expo/vector-icons";
 export default function Home({ navigation }) {
   const bottomOffset = useRef(new Animated.Value(0)).current;
   const dispatch = useDispatch();
+  const systemColorScheme = useColorScheme();
+  const isDark = systemColorScheme === 'dark';
+
+  const theme = {
+    background: isDark ? "#121212" : "#F2F4F8",
+    headerBg: isDark ? "#1F1F1F" : "#FFFFFF", // Improved Two-Tone Contrast
+    text: isDark ? "#F5F5F5" : "#1a1a1a",
+    textSecondary: isDark ? "#CCCCCC" : "#666666", // Lighter secondary for better readability
+    activeDayBg: isDark ? "#0A8C6D" : "#0A8C6D", // Green for both modes for consistency
+    activeDayText: isDark ? "#FFFFFF" : "#ffffff",
+    dayText: isDark ? "#B0B0B0" : "#666666",
+    sectionTitle: isDark ? "#E0E0E0" : "#1a1a1a",
+    buttonBorder: "transparent",
+    buttonBg: isDark ? "#1F1F1F" : "#F2F4F8",
+    buttonText: isDark ? "#FFFFFF" : "#0A8C6D",
+    
+    // Reminder card colors
+    reminderCardBg: isDark ? "#1F1F1F" : "#FFFFFF",
+    cardBorder: "transparent",
+    
+    // Shadow/Elevation - REMOVED for BOTH
+    shadowOpacity: 0,
+    elevation: 0,
+  };
 
   useEffect(() => {
     // Listen to multiple keyboard events for better cross-device compatibility
@@ -80,17 +105,24 @@ export default function Home({ navigation }) {
 
   return (
     <>
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.container}>
+      <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
+        <View style={[styles.container, { backgroundColor: theme.background }]}>
           {/* Improved Header */}
-          <View style={styles.infoContainer}>
+          <View style={[
+            styles.infoContainer, 
+            { 
+              backgroundColor: theme.headerBg,
+              shadowOpacity: theme.shadowOpacity,
+              elevation: theme.elevation
+            }
+          ]}>
             <View style={styles.headerTop}>
               <View style={styles.greetingSection}>
-                <Text style={styles.greeting}>Good {new Date().getHours() < 12 ? 'Morning' : new Date().getHours() < 18 ? 'Afternoon' : 'Evening'}</Text>
-                <Text style={styles.userName}>
+                <Text style={[styles.greeting, { color: theme.textSecondary }]}>Good {new Date().getHours() < 12 ? 'Morning' : new Date().getHours() < 18 ? 'Afternoon' : 'Evening'}</Text>
+                <Text style={[styles.userName, { color: theme.text }]}>
                   {user.email.charAt(0).toUpperCase() + user.email.slice(1).split("@")[0]}
                 </Text>
-                <Text style={styles.headerDate}>
+                <Text style={[styles.headerDate, { color: theme.textSecondary }]}>
                   {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
                 </Text>
               </View>
@@ -99,9 +131,9 @@ export default function Home({ navigation }) {
                 onPress={() => {
                   dispatch(asyncLogoutUser())
                 }}
-                style={styles.logoutButton}
+                style={[styles.logoutButton, { borderColor: theme.buttonBorder, backgroundColor: theme.buttonBg }]}
               >
-                <Text style={styles.logoutText}>Logout</Text>
+                <Text style={[styles.logoutText, { color: theme.buttonText }]}>Logout</Text>
               </TouchableOpacity>
             </View>
 
@@ -110,12 +142,16 @@ export default function Home({ navigation }) {
               {week.map((item, idx) => (
                 <View
                   key={idx}
-                  style={[styles.dayItem, item.isToday && styles.activeDay]}
+                  style={[
+                    styles.dayItem,
+                    item.isToday && { backgroundColor: theme.activeDayBg }
+                  ]}
                 >
                   <Text
                     style={[
                       styles.dayText,
-                      item.isToday && styles.activeDayText,
+                      { color: theme.dayText },
+                      item.isToday && { color: theme.activeDayText },
                     ]}
                   >
                     {item.day}
@@ -123,7 +159,8 @@ export default function Home({ navigation }) {
                   <Text
                     style={[
                       styles.weekDateText,
-                      item.isToday && styles.activeDayText,
+                      { color: theme.textSecondary },
+                      item.isToday && { color: theme.activeDayText },
                     ]}
                   >
                     {item.date}
@@ -134,7 +171,16 @@ export default function Home({ navigation }) {
           </View>
 
           {/* Set Reminder Card */}
-          <View style={styles.reminderCard}>
+          <View style={[
+            styles.reminderCard, 
+            { 
+              backgroundColor: theme.reminderCardBg, 
+              borderColor: theme.cardBorder, 
+              borderWidth: isDark ? 0 : 0, // No border in light mode for flat design? Or transparent.
+              shadowOpacity: theme.shadowOpacity,
+              elevation: theme.elevation
+            }
+          ]}>
             <View style={styles.reminderContent}>
               <Text style={styles.reminderTitle}>Set a reminder</Text>
               <Text style={styles.reminderSubtitle}>
@@ -154,8 +200,8 @@ export default function Home({ navigation }) {
 
           {/* Reminders Section */}
           <View style={styles.remindersSection}>
-            <Text style={styles.sectionTitle}>Upcoming Reminders</Text>
-            <Reminders />
+            <Text style={[styles.sectionTitle, { color: theme.sectionTitle }]}>Upcoming Reminders</Text>
+            <Reminders isDark={isDark} />
           </View>
         </View>
 
@@ -174,11 +220,9 @@ export default function Home({ navigation }) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#1a1a1a",
   },
   container: {
     flex: 1,
-    backgroundColor: "#1a1a1a",
   },
   
   // Improved Header Styles
@@ -189,10 +233,16 @@ const styles = StyleSheet.create({
     width: "100%",
     gap: 20,
     paddingHorizontal: 20,
-    backgroundColor: "#0d7a5e",
     borderBottomLeftRadius: 45,
     borderBottomRightRadius: 45,
     zIndex: 1,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    // shadowOpacity and elevation moved to dynamic style
+    shadowRadius: 8,
   },
   headerTop: {
     flexDirection: "row",
@@ -206,18 +256,15 @@ const styles = StyleSheet.create({
   },
   greeting: {
     fontSize: 16,
-    color: "#ffffff",
     fontWeight: "500",
   },
   userName: {
     fontSize: 32,
     fontWeight: "bold",
-    color: "#ffffff",
     marginTop: 4,
   },
   headerDate: {
     fontSize: 13,
-    color: "#ffffff",
     marginTop: 4,
   },
   
@@ -239,33 +286,22 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 4,
   },
-  activeDay: {
-    backgroundColor: "#ffffff",
-  },
   dayText: {
-    color: "#ffffff",
     fontSize: 12,
   },
   weekDateText: {
-    color: "#e0e0e0",
     fontSize: 16,
     fontWeight: "600",
-  },
-  activeDayText: {
-    color: "#4a4a4a",
   },
 
   // Logout Button
   logoutButton: {
     borderWidth: 1,
-    borderColor: "#ffffff",
-    backgroundColor: "#ffffff",
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 12,
   },
   logoutText: {
-    color: "#0A8C6D",
     fontSize: 14,
     fontWeight: "600",
   },
@@ -274,13 +310,18 @@ const styles = StyleSheet.create({
   reminderCard: {
     marginTop: 250,
     marginHorizontal: 20,
-    backgroundColor: "#E8F5E9",
     borderRadius: 24,
     padding: 20,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 32,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowRadius: 8,
   },
   reminderContent: {
     flex: 1,
@@ -320,7 +361,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 22,
     fontWeight: "bold",
-    color: "#ffffff",
     marginHorizontal: 20,
     marginBottom: 16,
   },
@@ -336,13 +376,13 @@ const styles = StyleSheet.create({
     backgroundColor: "#0A8C6D",
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#000",
+    shadowColor: "#0A8C6D",
     shadowOffset: {
       width: 0,
       height: 4,
     },
-    shadowOpacity: 0.3,
-    shadowRadius: 4.65,
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
     elevation: 8,
   },
 });

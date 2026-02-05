@@ -24,9 +24,9 @@ export const loadReminders = createAsyncThunk(
 
 export const addReminder = createAsyncThunk(
   'reminders/addReminder',
-  async ({ reminder, date, userId }) => {
+  async ({ reminder, date, userId, tag }) => {
     try {
-      const res = await instance.post('/reminders', { reminder, date, userId });
+      const res = await instance.post('/reminders', { reminder, date, userId, tag });
       
       // Schedule notification for the new reminder
       if (res.data.reminder) {

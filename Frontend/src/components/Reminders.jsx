@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   Animated,
   FlatList,
+  RefreshControl,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -103,9 +104,18 @@ const buildDateFromDayTime = ({ day, time }) => {
 // REMINDER CARD
 ///////////////////////////////////////////////////////////////////////////////////
 
-const ReminderCard = ({ item, onDelete }) => {
+const ReminderCard = ({ item, onDelete, isDark }) => {
   const SWIPE_LIMIT = -80;
   const [timeLeft, setTimeLeft] = useState(secondsUntil(item));
+
+  const theme = {
+    cardBg: isDark ? "#1F1F1F" : "#FFFFFF", // Matched Home Header
+    cardBorder: "transparent",
+    text: isDark ? "#ffffff" : "#0A8C6D",
+    shadowOpacity: 0,
+    elevation: 0,
+    borderWidth: 0,
+  };
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -173,12 +183,17 @@ const ReminderCard = ({ item, onDelete }) => {
             {
               opacity: enterOpacity,
               transform: [{ translateX }, { translateY: enterY }],
+              backgroundColor: theme.cardBg,
+              borderColor: theme.cardBorder,
+              borderWidth: theme.borderWidth,
+              shadowOpacity: theme.shadowOpacity,
+              elevation: theme.elevation,
             },
           ]}
         >
           <View style={styles.leftSection}>
             <View style={styles.titleRow}>
-              <Text style={styles.reminderTitle}>{item.reminder}</Text>
+              <Text style={[styles.reminderTitle, { color: theme.text }]}>{item.reminder}</Text>
               {item.tag && (
                 <View style={styles.tagBadge}>
                   <Text style={styles.tagBadgeText}>{item.tag}</Text>
@@ -197,11 +212,12 @@ const ReminderCard = ({ item, onDelete }) => {
 // LIST
 ///////////////////////////////////////////////////////////////////////////////////
 
-export default function Reminders() {
+export default function Reminders({ isDark }) {
   const dispatch = useDispatch();
   const { reminders, loading, error } = useSelector((state) => state.reminders);
   const listRef = useRef(null);
   const {user} = useSelector((state) => state.user);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
      if (!user?.id) return;
@@ -223,12 +239,19 @@ export default function Reminders() {
     dispatch(deleteReminder(_id));
   };
 
-  if (loading) {
-    return <Text>Loading...</Text>;
+  const onRefresh = async () => {
+    if (!user?.id) return;
+    setRefreshing(true);
+    await dispatch(loadReminders(user.id));
+    setRefreshing(false);
+  };
+
+  if (loading && !refreshing) {
+    return <Text style={{ color: isDark ? '#fff' : '#000' }}>Loading...</Text>;
   }
 
   if (error) {
-    return <Text>Error: {error}</Text>;
+    return <Text style={{ color: isDark ? '#ff4d4d' : 'red' }}>Error: {error}</Text>;
   }
 
   return (
@@ -238,7 +261,7 @@ export default function Reminders() {
         data={reminders}
         keyExtractor={(item) => item._id}
         renderItem={({ item }) => (
-          <ReminderCard item={item} onDelete={handleDeleteReminder} />
+          <ReminderCard item={item} onDelete={handleDeleteReminder} isDark={isDark} />
         )}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
@@ -246,6 +269,14 @@ export default function Reminders() {
           paddingBottom: 200,
           gap: 0,
         }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor="#0A8C6D"
+            colors={["#0A8C6D"]}
+          />
+        }
       />
     </View>
   );
@@ -258,7 +289,8 @@ export default function Reminders() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 10,
+    paddingHorizontal: 15,
+    paddingVertical: 10,
   },
 
   swipeWrapper: {
